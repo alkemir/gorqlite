@@ -12,22 +12,22 @@ gorqlite should be considered alpha until more testers share their experiences. 
 
 ## Features
 
-* Abstracts the rqlite http API interaction - the POSTs, JSON handling, etc.  You submit your SQL and get back an interator with familiar database/sql semantics (`Next()`, `Scan()`, etc.) or a `map[column name as string]interface{}.
+* Abstracts the rqlite http API interaction - the POSTs, JSON handling, etc.  You submit your SQL and get back an iterator with familiar database/sql semantics (`Next()`, `Scan()`, etc.) or a `map[column name as string]interface{}.
 * Timings and other metadata (e.g., num rows affected, last insert ID, etc.) is conveniently available and parsed into appropriate types.
-* A connection abstraction allows gorqlite to discover and remember the rqlite leader.  gorqlite will automatically try other peers if the leader is lost, enabling fault-tolerant API operations.
+* A connection abstraction allows gorqlite to discover and remember the rqlite leader. gorqlite will automatically try other peers if the leader is lost, enabling fault-tolerant API operations.
 * Timeout can be set on a per-Connection basis to accomodate those with far-flung empires.
 * Use familiar database URL connection strings to connection, optionally including rqlite authentication and/or specific rqlite consistency levels.
 * Only a single node needs to be specified in the connection.  gorqlite will talk to it and figure out the rest of the cluster from its redirects and status API.
 * Support for several rqlite-specific operations:
   * `Leader()` and `Peers()` to examine the cluster.
   * `SetConsistencyLevel()` can be called at any time on a connection to change the consistency level for future operations.
-  * `Timing` can be referenced on a per-result basis to retrieve the timings information for executed operations as float64, per the rqlite API. 
+  * `Timing` can be referenced on a per-result basis to retrieve the timings information for executed operations as float64, per the rqlite API.
 * `Trace(io.Writer)`/`Trace(nil)` can be used to turn on/off debugging information on everything gorqlite does to a io.Writer of your choice.
 * No external dependencies. Uses only standard library functions.
 
 ## Install
 
-`go get github.com/raindog308/gorqlite`
+`go get github.com/rqlite/gorqlite`
 
 ## Examples
 ```
@@ -69,7 +69,7 @@ statements = append(statements,fmt.Sprintf(pattern,209166,"Clint Barlow","Clint"
 statements = append(statements,fmt.Sprintf(pattern,44107,"Barney Dunlap","Barney"))
 results, err := conn.Write(statements)
 
-// now we have an array of []WriteResult 
+// now we have an array of []WriteResult
 
 for n, v := range WriteResult {
 	fmt.Printf("for result %d, %d rows were affected\n",n,v.RowsAffected)
@@ -178,7 +178,7 @@ The chief reasons a proper database/sql driver is not possible are:
 
 In `database/sql`, `Open()` doesn't actually do anything.  You get a "connection" that doesn't connect until you `Ping()` or send actual work.  In gorqlite's case, it needs to connect to get cluster information, so this is done immediately and automatically open calling `Open()`.  By the time `Open()` is returned, gorqlite has full cluster info.
 
-Unlike `database/sql` connections, a gorqlite connection is not threadsafe.  
+Unlike `database/sql` connections, a gorqlite connection is not threadsafe.
 
 `Close()` will set a flag so if you try to use the connection afterwards, it will fail.  But otherwise, you can merrily let your connections be garbage-collected with no harm, because they're just configuration tracking bundles and everything to the rqlite cluster is stateless.  Indeed, the true reason that `Close()` exists is the author's feeling that if you open something, you should be able to close it.  So why not `GetConnection()` then instead of `Open()`?  Or `GetClusterConfigurationTrackingObject()`?  I don't know.  Fork me.
 
